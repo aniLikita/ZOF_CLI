@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOF Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .method-params {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .hidden {
+            display: none;
+        }
+        #results {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #results h3 {
+            color: #28a745;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #e9ecef;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Zero of Functions (ZOF) Solver</h1>
+
+        <form id="zof-form">
+            <label for="method">Select Method:</label>
+            <select id="method" name="method" onchange="toggleMethodParams()">
+                <option value="bisection">Bisection Method</option>
+                <option value="regula_falsi">Regula Falsi (False Position) Method</option>
+                <option value="secant">Secant Method</option>
+                <option value="newton_raphson">Newton-Raphson Method</option>
+                <option value="fixed_point_iteration">Fixed Point Iteration Method</option>
+                <option value="modified_secant">Modified Secant Method</option>
+            </select>
+
+            <label for="function">Function f(x):</label>
+            <input type="text" id="function" name="function" placeholder="e.g., x**2 - 2" required>
+
+            <div id="method-specific-params">
+                <div id="bisection-params" class="method-params">
+                    <h2>Bisection Method Parameters</h2>
+                    <label for="bisection_a">Initial Guess 'a':</label>
+                    <input type="number" id="bisection_a" step="any" value="0">
+                    <label for="bisection_b">Initial Guess 'b':</label>
+                    <input type="number" id="bisection_b" step="any" value="2">
+                </div>
+
+                <div id="regula_falsi-params" class="method-params hidden">
+                    <h2>Regula Falsi Method Parameters</h2>
+                    <label for="regula_falsi_a">Initial Guess 'a':</label>
+                    <input type="number" id="regula_falsi_a" step="any" value="0">
+                    <label for="regula_falsi_b">Initial Guess 'b':</label>
+                    <input type="number" id="regula_falsi_b" step="any" value="2">
+                </div>
+
+                <div id="secant-params" class="method-params hidden">
+                    <h2>Secant Method Parameters</h2>
+                    <label for="secant_x0">Initial Guess 'x0':</label>
+                    <input type="number" id="secant_x0" step="any" value="1">
+                    <label for="secant_x1">Second Initial Guess 'x1':</label>
+                    <input type="number" id="secant_x1" step="any" value="2">
+                </div>
+
+                <div id="newton_raphson-params" class="method-params hidden">
+                    <h2>Newton-Raphson Method Parameters</h2>
+                    <label for="newton_raphson_x0">Initial Guess 'x0':</label>
+                    <input type="number" id="newton_raphson_x0" step="any" value="1.5">
+                    <label for="derivative">Derivative f'(x):</label>
+                    <input type="text" id="derivative" placeholder="e.g., 2*x">
+                </div>
+
+                <div id="fixed_point_iteration-params" class="method-params hidden">
+                    <h2>Fixed Point Iteration Method Parameters</h2>
+                    <label for="fixed_point_x0">Initial Guess 'x0':</label>
+                    <input type="number" id="fixed_point_x0" step="any" value="1.5">
+                    <label for="g_function">g(x) function (from x = g(x)):</label>
+                    <input type="text" id="g_function" placeholder="e.g., math.sqrt(2*x) for x**2 - 2">
+                </div>
+
+                <div id="modified_secant-params" class="method-params hidden">
+                    <h2>Modified Secant Method Parameters</h2>
+                    <label for="modified_secant_x0">Initial Guess 'x0':</label>
+                    <input type="number" id="modified_secant_x0" step="any" value="1.5">
+                    <label for="delta">Delta (perturbation):</label>
+                    <input type="number" id="delta" step="any" value="0.01">
+                </div>
+            </div>
+
+            <label for="tolerance">Tolerance:</label>
+            <input type="number" id="tolerance" name="tolerance" step="any" value="0.000001" required>
+
+            <label for="max_iterations">Max Iterations:</label>
+            <input type="number" id="max_iterations" name="max_iterations" value="100" required>
+
+            <button type="submit">Solve</button>
+        </form>
+
+        <div id="results">
+            <h2>Results</h2>
+            <p id="final-root"></p>
+            <p id="final-error"></p>
+            <p id="iterations-executed"></p>
+            <div id="iteration-details"></div>
+            <p class="error-message" id="error-message"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleMethodParams(); // Initialize correct params on load
+        });
+
+        function toggleMethodParams() {
+            const method = document.getElementById('method').value;
+            const paramsDivs = document.querySelectorAll('.method-params');
+            paramsDivs.forEach(div => div.classList.add('hidden'));
+            document.getElementById(`${method}-params`).classList.remove('hidden');
+        }
+
+        document.getElementById('zof-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const method = document.getElementById('method').value;
+            const func_str = document.getElementById('function').value;
+            const tolerance = document.getElementById('tolerance').value;
+            const max_iterations = document.getElementById('max_iterations').value;
+
+            let requestBody = {
+                method: method,
+                function: func_str,
+                tolerance: tolerance,
+                max_iterations: max_iterations
+            };
+
+            // Add method-specific parameters
+            if (method === 'bisection') {
+                requestBody.a = document.getElementById('bisection_a').value;
+                requestBody.b = document.getElementById('bisection_b').value;
+            } else if (method === 'regula_falsi') {
+                requestBody.a = document.getElementById('regula_falsi_a').value;
+                requestBody.b = document.getElementById('regula_falsi_b').value;
+            } else if (method === 'secant') {
+                requestBody.x0 = document.getElementById('secant_x0').value;
+                requestBody.x1 = document.getElementById('secant_x1').value;
+            } else if (method === 'newton_raphson') {
+                requestBody.x0 = document.getElementById('newton_raphson_x0').value;
+                requestBody.derivative = document.getElementById('derivative').value;
+            } else if (method === 'fixed_point_iteration') {
+                requestBody.x0 = document.getElementById('fixed_point_x0').value;
+                requestBody.g_function = document.getElementById('g_function').value;
+            } else if (method === 'modified_secant') {
+                requestBody.x0 = document.getElementById('modified_secant_x0').value;
+                requestBody.delta = document.getElementById('delta').value;
+            }
+
+            document.getElementById('error-message').textContent = '';
+            document.getElementById('final-root').textContent = '';
+            document.getElementById('final-error').textContent = '';
+            document.getElementById('iterations-executed').textContent = '';
+            document.getElementById('iteration-details').innerHTML = '';
+
+            try {
+                const response = await fetch('/solve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('final-root').textContent = `Estimated Root: ${result.root}`;
+                    document.getElementById('final-error').textContent = `Final Error: ${result.error}`;
+                    document.getElementById('iterations-executed').textContent = `Iterations Executed: ${result.iterations}`;
+
+                    if (result.iterations_data && result.iterations_data.length > 0) {
+                        let tableHtml = '<h3>Iteration Details</h3><table><thead><tr>';
+                        // Dynamically create table headers
+                        const headers = Object.keys(result.iterations_data[0]);
+                        headers.forEach(header => {
+                            tableHtml += `<th>${header}</th>`;
+                        });
+                        tableHtml += '</tr></thead><tbody>';
+
+                        // Dynamically create table rows
+                        result.iterations_data.forEach(row => {
+                            tableHtml += '<tr>';
+                            headers.forEach(header => {
+                                tableHtml += `<td>${row[header].toFixed(6)}</td>`; // Format to 6 decimal places
+                            });
+                            tableHtml += '</tr>';
+                        });
+                        tableHtml += '</tbody></table>';
+                        document.getElementById('iteration-details').innerHTML = tableHtml;
+                    }
+                } else {
+                    document.getElementById('error-message').textContent = result.message || result.error || "An unknown error occurred.";
+                }
+            } catch (error) {
+                document.getElementById('error-message').textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
