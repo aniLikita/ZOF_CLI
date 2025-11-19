@@ -1,4 +1,4 @@
 Name: Aninga Likita
 Matric Number: 22CG031882
-Live URL of hosted application: [To be filled after deployment]
-GitHub repository link: [To be filled after GitHub upload]
+Live URL of hosted application: https://zof-cli.onrender.com
+GitHub repository link: https://github.com/aniLikita/ZOF_CLI
